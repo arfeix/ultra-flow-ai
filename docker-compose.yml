@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - ultra-flow-network
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    networks:
+      - ultra-flow-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ultra-flow-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+
+networks:
+  ultra-flow-network:
+    driver: bridge
